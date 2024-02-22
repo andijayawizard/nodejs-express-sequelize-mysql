@@ -2,6 +2,21 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
+const { expressjwt: expressJwt } = require('express-jwt');
+const jwksRsa = require("jwks-rsa");
+const checkJwt = expressJwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://js-simple-crud.jp.auth0.com/.well-known/jwks.json`
+  }),
+
+  // Validate the audience and the issuer.
+  audience: 'https://js-simple-crud.jp.auth0.com/api/v2/',
+  issuer: `https://js-simple-crud.jp.auth0.com/`,
+  algorithms: ['RS256']
+});
 
 var corsOptions = {
   origin: "http://localhost:8081"
@@ -20,6 +35,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to js simple CRUD app." });
 });
 
+app.use(checkJwt);
 require("./app/routes/tutorial.routes")(app);
 
 // set port, listen for requests
